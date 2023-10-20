@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+
+    {% block styles %}
+    <!-- Load Bootstrap-Flask CSS here -->
+    {{ bootstrap.load_css() }}
+    <!-- Link to the styles.css here to apply styling to all the child templates.-->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/styles.css') }}"
+    />
+    {% endblock %}
+
+    <title>{% block title %}{% endblock %}</title>
+
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+    <script>
+    function format_money(){
+        return new Intl.NumberFormat('en-US',
+            {notation: 'compact', maximumFractionDigits: 2, style: 'currency', currency: 'EUR' })
+            .format(localStorage.getItem("money"));
+    };
+
+    function create_local_data(){
+        if (localStorage.money == undefined) {
+            localStorage.money = 100;
+        }
+        if (localStorage.owned_cards == undefined) {
+            const owned_cards = [];
+            localStorage.setItem('owned_cards', JSON.stringify(owned_cards));
+        }
+        if (localStorage.inventory_cards == undefined) {
+            const inventory_cards = [];
+            localStorage.setItem('inventory_cards', JSON.stringify(inventory_cards));
+        }
+        if (localStorage.inventory_packs == undefined) {
+            const inventory_packs = [];
+            localStorage.setItem('inventory_packs', JSON.stringify(inventory_packs));
+        }
+        document.getElementById('money').innerHTML = format_money()
+    };
+
+    function pass_data(){
+        const owned_cards = JSON.parse(localStorage.getItem("owned_cards"));
+        const inventory_packs = JSON.parse(localStorage.getItem("inventory_packs"));
+        const inventory_cards = JSON.parse(localStorage.getItem("inventory_cards"));
+        const data_dic = {'owned_cards': owned_cards, 'inventory_packs': inventory_packs, 'inventory_cards': inventory_cards}
+
+        $.ajax({
+            url:"/data",
+            type:"POST",
+            contentType: "application/json",
+            data: JSON.stringify(data_dic)
+        });
+        document.getElementById('money').innerHTML = format_money()
+    };
+
+    window.onload=function(){
+        create_local_data();
+        pass_data();
+    }
+
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+
+  </head>
+  <body>
+    <div class="div-money bi bi-bank"><p class="money" id="money"></p></div>
+    <!-- Sidebar -->
+    <div class="nav flex-column nav-underline">
+        <a href="{{ url_for('home') }}" class="nav-link bi bi-house">  Home</a>
+        <a href="{{ url_for('currency') }}" class="nav-link bi bi-coin">  Earn money!</a>
+        <a href="{{ url_for('pack_shop') }}" class="nav-link bi bi-shop">  Pack Shop</a>
+        <a href="#" class="nav-link bi bi-graph-up-arrow">  Upgrades(soon)</a>
+        <a href="#" class="nav-link bi bi-dice-6">  Games(soon)</a>
+        <a href="{{ url_for('inventory') }}" class="nav-link bi bi-archive">  Inventory</a>
+        <a href="{{ url_for('collection') }}" class="nav-link bi bi-collection">  Collection</a>
+    </div>
+  </body>
+
+  {% block content %}{% endblock %}
+</html>

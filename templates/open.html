@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% block title %}Magic: The Gathering Idle Game{% endblock %}
+
+{% block content %}
+<script>
+    function delete_pack(pack_code) {
+      var inventory_packs = JSON.parse(localStorage.getItem("inventory_packs"));
+      const index = inventory_packs.indexOf(pack_code);
+      inventory_packs.splice(index, 1);
+      localStorage.setItem("inventory_packs", JSON.stringify(inventory_packs));
+      pass_data();
+    }
+
+    function cards_to_inv() {
+      var inventory_cards = JSON.parse(localStorage.getItem("inventory_cards"));
+      {% for card in cards %}
+        inventory_cards.push('{{card.id}}');
+      {% endfor %}
+      localStorage.setItem("inventory_cards", JSON.stringify(inventory_cards));
+      pass_data();
+    }
+
+    window.onload=function(){
+        delete_pack('{{pack_code}}');
+        cards_to_inv();
+    }
+    function reveal_card(card_id) {
+      var img = document.getElementById(card_id);
+      var img2 = document.getElementById(card_id + '-2');
+      if (img.style.display == 'block'){
+        img.style.display ='none';
+        img2.style.display ='block';
+        document.getElementById(card_id + '-name').style.display ='block';
+        document.getElementById(card_id + '-set').style.display ='block';
+        document.getElementById(card_id + '-price').style.display ='block';
+      }
+    }
+    function flip_all() {
+      {% for card in cards %}
+      var img = document.getElementById('{{card.id}}');
+      var img2 = document.getElementById('{{card.id}}' + '-2');
+      if (img.style.display == 'block'){
+        img.style.display ='none';
+        img2.style.display ='block';
+        document.getElementById('{{card.id}}' + '-name').style.display ='block';
+        document.getElementById('{{card.id}}' + '-set').style.display ='block';
+        document.getElementById('{{card.id}}' + '-price').style.display ='block';
+      }
+      {% endfor %}
+    }
+</script>
+
+<div class="inv_top_buttons">
+    <button class="button" onclick="window.location.href='{{ url_for('inventory') }}'">Back to inventory</button>
+    <button class="button" onclick="window.location.reload();">Open another (F5)</button>
+    <button class="button" onclick="flip_all();">Flip all</button>
+    <p>No pack available = back to inventory</p>
+</div>
+
+<div class="collection_grid">
+{% for card in cards %}
+    <div class="open_pack_cards">
+        <div>
+            <img id="{{card.id}}" alt={{card.name}} title={{card.name}} src=https://static.wikia.nocookie.net/mtgsalvation_gamepedia/images/f/f8/Magic_card_back.jpg
+                 class="card_img" style="display: block;" onclick="reveal_card('{{card.id}}')">
+            <img id="{{card.id}}-2" alt={{card.name}} title={{card.name}} src={{card.image_uris}}
+                 class="card_img" style="display: none;">
+        </div>
+        <div id="{{card.id}}-name" title={{card.name}} style="display: none;">NAME: {{card.name}}</div>
+        <div id="{{card.id}}-set" title={{card.set_name}} style="display: none;">SET: {{card.set_name}}</div>
+        <div id="{{card.id}}-price" class="" style="display: none;">Price: {{card.price}}€</div>
+    </div>
+{% endfor %}
+</div>
+
+
+{% endblock %}

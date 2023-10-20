@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block title %}Magic: The Gathering Idle Game{% endblock %}
+
+
+{% block content %}
+<script>
+    function get_money() {
+      localStorage.money = Number(localStorage.money)+1;
+      document.getElementById('money').innerHTML = format_money()
+    }
+</script>
+
+<div class="container">
+  <h1 class="heading">Magic: The Gathering - Pack Opener</h1>
+  <p class="description">Start earning money!</p>
+  <button class="button" onclick="get_money()">Get money!</button>
+</div>
+
+{% endblock %}

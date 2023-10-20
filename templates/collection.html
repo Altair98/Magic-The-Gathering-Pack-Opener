@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block title %}Magic: The Gathering Idle Game{% endblock %}
+
+{% block content %}
+<script>
+
+</script>
+
+<h1 style="width: fit-content; margin: auto;">COLLECTION</h1>
+
+<form class="row gy-3 gx-4 align-items-center" action="{{ url_for('collection') }}" method="post" style="width: fit-content; margin: auto; padding-top: 0px;">
+    <div class="col-auto">
+        <label class="form-label" for="name_search">Set Name: </label>
+        <input class="form-control" id="name_search" name="name_search" placeholder="Enter set name" type="text" spellcheck="false" autocapitalize="off" value="">
+    </div>
+
+    <div class="col-auto">
+        <label class="form-label" for="settype_dropdown">Set type:</label>
+        <select class="form-select" id="settype_dropdown" name="settype_dropdown">
+            <option disabled selected value>Select set type</option>
+            <option value="draft_innovation">Draft_Innovation</option>
+            <option value="promo">Promo</option>
+            <option value="token">Token</option>
+            <option value="commander">Commander</option>
+            <option value="core">Core</option>
+            <option value="memorabilia">Memorabilia</option>
+            <option value="expansion">Expansion</option>
+            <option value="masters">Masters</option>
+            <option value="starter">Starter</option>
+            <option value="vanguard">Vanguard</option>
+        </select>
+    </div>
+
+    <div class="col-auto">
+        <label class="form-label" for="sort_dropdown">Sort by:</label>
+        <select class="form-select" id="sort_dropdown" name="sort_dropdown">
+            <option disabled selected value>Name (default)</option>
+            <option value="Sets.name desc">Name (desc)</option>
+            <option value="Sets.released_at">Release date</option>
+            <option value="Sets.released_at desc">Release date (desc)</option>
+            <option value="Sets.set_type">Set type</option>
+            <option value="Sets.set_type desc">Set type (desc)</option>
+            <option value="Sets.card_count">Number of cards</option>
+            <option value="Sets.card_count desc">Number of cards (desc)</option>
+        </select>
+    </div>
+
+    <div class="col-auto" style="margin-top: 50px;">
+        <button class="button" type="submit" name="Filter">Filter</button>
+        <button class="button" type="submit" name="Reset">Reset</button>
+    </div>
+</form>
+
+<div class="collection_status">
+    <div title=collection-status class="">Cards owned: {{owned_cards|length}} / {{cards|length}}</div>
+</div>
+
+<div class="collection_grid">
+    {% for set in sets %}
+    <div class="set_div">
+            <a class="" href="{{ url_for('collection_cards', setname=set.name) }}" style="width: 100%;">
+                <img alt={{set.name}} title={{set.name}} src={{set.icon_svg_uri}} class="" style="display: block;">
+            </a>
+        <div title={{set.name}} class="">{{set.name}}</div>
+        <div title=set-collection-status class="">
+            Cards owned: {{ set_owned(set.code) }} / {{set.card_count}}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock %}

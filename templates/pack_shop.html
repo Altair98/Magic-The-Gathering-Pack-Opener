@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% block title %}Magic: The Gathering Idle Game{% endblock %}
+
+{% block content %}
+<script>
+    function buy_pack(price, pack_code) {
+        if (localStorage.money > price) {
+          localStorage.money = Number(localStorage.money)-price;
+          document.getElementById('money').innerHTML = format_money()
+
+          var inventory_packs = JSON.parse(localStorage.getItem("inventory_packs"));
+          inventory_packs.push(pack_code);
+          localStorage.setItem("inventory_packs", JSON.stringify(inventory_packs));
+          pass_data();
+        } else {
+          window.alert("You don't have enough money!!");
+        }
+    }
+</script>
+
+<h1 style="width: fit-content; margin: auto;">PACK SHOP</h1>
+
+<form class="row gy-3 gx-4 align-items-center" action="{{ url_for('pack_shop') }}" method="post" style="width: fit-content; margin: auto;">
+    <div class="col-auto">
+        <label class="form-label" for="name_search">Set Name: </label>
+        <input class="form-control" id="name_search" name="name_search" placeholder="Enter set name" type="text" spellcheck="false" autocapitalize="off" value="">
+    </div>
+
+    <div class="col-auto">
+        <label class="form-label" for="settype_dropdown">Set type:</label>
+        <select class="form-select" id="settype_dropdown" name="settype_dropdown">
+            <option disabled selected value>Select set type</option>
+            <option value="draft_innovation">Draft_Innovation</option>
+            <option value="promo">Promo</option>
+            <option value="token">Token</option>
+            <option value="commander">Commander</option>
+            <option value="core">Core</option>
+            <option value="memorabilia">Memorabilia</option>
+            <option value="expansion">Expansion</option>
+            <option value="masters">Masters</option>
+            <option value="starter">Starter</option>
+            <option value="vanguard">Vanguard</option>
+        </select>
+    </div>
+
+    <div class="col-auto">
+        <label class="form-label" for="sort_dropdown">Sort by:</label>
+        <select class="form-select" id="sort_dropdown" name="sort_dropdown">
+            <option disabled selected value>Name (default)</option>
+            <option value="Sets.name desc">Name (desc)</option>
+            <option value="Sets.released_at">Release date</option>
+            <option value="Sets.released_at desc">Release date (desc)</option>
+            <option value="Sets.set_type">Set type</option>
+            <option value="Sets.set_type desc">Set type (desc)</option>
+            <option value="Sets.card_count">Number of cards</option>
+            <option value="Sets.card_count desc">Number of cards (desc)</option>
+            <option value="Sets.price">Price</option>
+            <option value="Sets.price desc">Price (desc)</option>
+        </select>
+    </div>
+
+    <div class="col-auto" style="margin-top: 50px;">
+        <button class="button" type="submit" name="Filter">Filter</button>
+        <button class="button" type="submit" name="Reset">Reset</button>
+    </div>
+</form>
+
+<div class="collection_grid">
+    {% for set in sets %}
+    <div class="shop_set_div">
+        {% if set.released_at < '2018-04-27' %}
+        <img class="blank_booster" src="{{ url_for('static', filename='img/logo_antiguo.png') }}">
+        {% else %}
+        <img class="blank_booster" src="{{ url_for('static', filename='img/logo_actual.png') }}">
+        {% endif %}
+        <div class="pack_info">
+            <img class="pack_img" alt={{set.name}} title={{set.name}} src={{set.icon_svg_uri}} style="display: block;">
+            <div title={{set.name}} style="color:black;">{{set.name}}</div>
+            <div title={{set.released_at}} style="color:black;">{{set.released_at}}</div>
+        </div>
+        <button class="button" onclick="buy_pack({{set.price}}, '{{set.code}}')">{{set.price}}€</button>
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock %}

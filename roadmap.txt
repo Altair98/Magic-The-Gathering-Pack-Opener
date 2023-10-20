@@ -1,0 +1,26 @@
+EARN MONEY:
+    Add more ways of getting money
+
+UPGRADES:
+    - Increase money per click
+    - upgrade the new ways of getting money
+
+COLLECTION:
+     sorting by completion
+
+ADD SETTINGS/PROFILE TAB WITH SAVE/LOAD GAME
+
+ADD GAMES TAB WITH mini-GAMES
+
+THE CSS (fuck my life)
+    añadir efectos visuales en grid elements
+    add github
+
+ignore acentos y simbolos en filtro / filtros con frame effects y border
+mejorar alt descriptions
+mejorar el display en cada coleccions segun el tipo de carta
+
+añadir notas y descripciones al codigo
+
+MAYBE - pasar la función de contar owned cards by set a JS
+MAYBE - añadir delay en las funciones de vender y añadir cartas para conexiones lentas

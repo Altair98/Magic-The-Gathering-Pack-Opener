@@ -1,0 +1,224 @@
+{% extends 'base.html' %}
+{% block title %}Magic: The Gathering Idle Game{% endblock %}
+
+{% block content %}
+<script>
+    function sell_pack(price, pack_code) {
+      localStorage.money = Number(localStorage.money)+price;
+      document.getElementById('money').innerHTML = format_money()
+
+      var inventory_packs = JSON.parse(localStorage.getItem("inventory_packs"));
+      const index = inventory_packs.indexOf(pack_code);
+      inventory_packs.splice(index, 1);
+      localStorage.setItem("inventory_packs", JSON.stringify(inventory_packs));
+      pass_data();
+      location.reload();
+    }
+
+    function sell_card(price, card_id) {
+      localStorage.money = Number(localStorage.money)+price;
+      document.getElementById('money').innerHTML = format_money()
+
+      var inventory_cards = JSON.parse(localStorage.getItem("inventory_cards"));
+      const index = inventory_cards.indexOf(card_id);
+      inventory_cards.splice(index, 1);
+      localStorage.setItem("inventory_cards", JSON.stringify(inventory_cards));
+      pass_data();
+      location.reload();
+    }
+
+    function addToCollection(card_id){
+      var inventory_cards = JSON.parse(localStorage.getItem("inventory_cards"));
+      const index = inventory_cards.indexOf(card_id);
+      inventory_cards.splice(index, 1);
+      localStorage.setItem("inventory_cards", JSON.stringify(inventory_cards));
+
+      var owned_cards = JSON.parse(localStorage.getItem("owned_cards"));
+      owned_cards.push(card_id);
+      localStorage.setItem("owned_cards", JSON.stringify(owned_cards));
+
+      pass_data();
+      location.reload();
+    }
+
+    function add_all_cards(){
+        var inventory_cards = JSON.parse(localStorage.getItem("inventory_cards"));
+        var owned_cards = JSON.parse(localStorage.getItem("owned_cards"));
+        var loop_cards = [];
+        {% for card in cards %}
+            if (!owned_cards.includes('{{card.id}}') && !loop_cards.includes('{{card.id}}')) {
+              var index = inventory_cards.indexOf('{{card.id}}');
+              inventory_cards.splice(index, 1);
+              owned_cards.push('{{card.id}}');
+              loop_cards.push('{{card.id}}');
+            }
+        {% endfor %}
+        localStorage.setItem("inventory_cards", JSON.stringify(inventory_cards));
+        localStorage.setItem("owned_cards", JSON.stringify(owned_cards));
+
+        pass_data();
+        location.reload();
+    }
+
+    function sell_all_cards(){
+        total_money = 0;
+        {% for card in cards %}
+            card_price = {{card.price}}
+            total_money += card_price
+        {% endfor %}
+
+        localStorage.money = Number(localStorage.money)+total_money;
+        document.getElementById('money').innerHTML = format_money()
+
+      var inventory_cards = [];
+      localStorage.setItem("inventory_cards", JSON.stringify(inventory_cards));
+      pass_data();
+      location.reload();
+    }
+
+    function all_items(){
+      var cards = document.getElementsByClassName('show_cards');
+      var packs = document.getElementsByClassName('show_packs');
+      for(i = 0; i < cards.length; i++) {
+        cards[i].style.display ='block';
+      }
+      for(i = 0; i < packs.length; i++) {
+        packs[i].style.display ='block';
+      }
+    }
+    function cards(){
+      var cards = document.getElementsByClassName('show_cards');
+      var packs = document.getElementsByClassName('show_packs');
+      for(i = 0; i < cards.length; i++) {
+        cards[i].style.display ='block';
+      }
+      for(i = 0; i < packs.length; i++) {
+        packs[i].style.display ='none';
+      }
+    }
+    function packs(){
+      var cards = document.getElementsByClassName('show_cards');
+      var packs = document.getElementsByClassName('show_packs');
+      for(i = 0; i < cards.length; i++) {
+        cards[i].style.display ='none';
+      }
+      for(i = 0; i < packs.length; i++) {
+        packs[i].style.display ='block';
+      }
+}
+</script>
+<h1 style="width: fit-content; margin: auto;">INVENTORY</h1>
+
+<div class="inv_top_buttons">
+    <button class="button" onclick="sell_all_cards()">Sell all cards</button>
+    <button class="button" onclick="add_all_cards()">All unowned to collection</button>
+</div>
+
+<div class="radio-buttons">
+    <input class="btn-check" id="radio-all" type="radio" name="show" value="all" onclick="all_items();" checked="checked"/>
+    <label class="btn" for="radio-all">All</label>
+
+    <input class="btn-check" id="radio-cards" type="radio" name="show" value="cards" onclick="cards();"/>
+    <label class="btn" for="radio-cards">Cards</label>
+
+    <input class="btn-check" id="radio-packs" type="radio" name="show" value="packs" onclick="packs();"/>
+    <label class="btn" for="radio-packs">Packs</label>
+</div>
+
+<div>
+<form class="row gy-3 gx-4 align-items-center" action="{{ url_for('inventory') }}" method="post" style="width: fit-content; margin: auto; padding-top: 0px; padding-bottom: 0px;">
+    <div class="col-auto">
+        <label class="form-label" for="name_search">Card Name: </label>
+        <input class="form-control" id="name_search" name="name_search" placeholder="Enter card name" type="text" spellcheck="false" autocapitalize="off" value="">
+    </div>
+
+    <div class="col-auto">
+        <label class="form-label" for="artist_search">Artist Name: </label>
+        <input class="form-control" id="artist_search" name="artist_search" placeholder="Enter artist name" type="text" spellcheck="false" autocapitalize="off" value="">
+    </div>
+
+    <div class="col-auto">
+        <label class="form-label" for="rarity_dropdown">Rarity:</label>
+        <select class="form-select" id="rarity_dropdown" name="rarity_dropdown">
+            <option disabled selected value>Select rarity</option>
+            <option value="common">Common</option>
+            <option value="uncommon">Uncommon</option>
+            <option value="rare">Rare</option>
+            <option value="mythic">Mythic</option>
+        </select>
+    </div>
+
+    <div class="col-auto" style="margin-top: 50px;">
+        <button class="button" type="submit" name="Filter_cards">Filter Cards</button>
+        <button class="button" type="submit" name="Reset_cards">Reset Cards</button>
+    </div>
+</form>
+</div>
+
+<div>
+<form class="row gy-3 gx-4 align-items-center" action="{{ url_for('inventory') }}" method="post" style="width: fit-content; margin: auto; padding-top: 0px;">
+    <div class="col-auto">
+        <label class="form-label" for="set_name_search">Set Name: </label>
+        <input class="form-control" id="set_name_search" name="name_search" placeholder="Enter set name" type="text" spellcheck="false" autocapitalize="off" value="">
+    </div>
+
+    <div class="col-auto">
+        <label class="form-label" for="settype_dropdown">Set type:</label>
+        <select class="form-select" id="settype_dropdown" name="settype_dropdown">
+            <option disabled selected value>Select set type</option>
+            <option value="draft_innovation">Draft_Innovation</option>
+            <option value="promo">Promo</option>
+            <option value="token">Token</option>
+            <option value="commander">Commander</option>
+            <option value="core">Core</option>
+            <option value="memorabilia">Memorabilia</option>
+            <option value="expansion">Expansion</option>
+            <option value="masters">Masters</option>
+            <option value="starter">Starter</option>
+            <option value="vanguard">Vanguard</option>
+        </select>
+    </div>
+
+    <div class="col-auto" style="margin-top: 50px;">
+        <button class="button" type="submit" name="Filter_packs">Filter packs</button>
+        <button class="button" type="submit" name="Reset_packs">Reset packs</button>
+    </div>
+</form>
+</div>
+
+<div class="collection_grid">
+    {% for card in cards %}
+    <div class="show_cards" style="display: block;">
+        <div class="">
+                <div class="" style="width: 100%;">
+                        <img alt={{card.name}} title={{card.name}} src={{card.image_uris}} class="card_img" style="display: block;">
+                </div>
+            <div title={{card.name}} class="">NAME: {{card.name}}</div>
+            <div title={{card.set_name}} class="">SET: {{card.set_name}}</div>
+            <button class="button" onclick="sell_card({{card.price}}, '{{card.id}}')">Sell card {{card.price}}€</button>
+            {% if card.id not in owned_cards: %}
+            <button class="button" onclick="addToCollection('{{card.id}}')">Add to collection</button>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+
+    {% for set in sets %}
+    <div class="shop_set_div">
+        {% if set.released_at < '2018-04-27' %}
+        <img class="blank_booster" src="{{ url_for('static', filename='img/logo_antiguo.png') }}">
+        {% else %}
+        <img class="blank_booster" src="{{ url_for('static', filename='img/logo_actual.png') }}">
+        {% endif %}
+        <div class="pack_info">
+            <img class="pack_img" alt={{set.name}} title={{set.name}} src={{set.icon_svg_uri}} style="display: block;">
+            <div title={{set.name}} style="color:black;">{{set.name}}</div>
+            <div title={{set.released_at}} style="color:black;">{{set.released_at}}</div>
+        </div>
+        <button class="button" onclick="sell_pack({{set.price}}, '{{set.code}}')">Sell pack {{set.price}}€</button>
+        <button class="button" onclick="window.location.href='{{ url_for('open_pack' , pack_code=set.code) }}';">Open pack</button>
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock %}

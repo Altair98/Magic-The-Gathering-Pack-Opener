@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% block title %}Magic: The Gathering Idle Game{% endblock %}
+
+{% block content %}
+<script>
+function all_cards(){
+  var ow_cards = document.getElementsByClassName('owned-card-container');
+  var unow_cards = document.getElementsByClassName('unowned-card-container');
+  for(i = 0; i < ow_cards.length; i++) {
+    ow_cards[i].style.display ='block';
+  }
+  for(i = 0; i < unow_cards.length; i++) {
+    unow_cards[i].style.display ='block';
+  }
+}
+function owned(){
+  var ow_cards = document.getElementsByClassName('owned-card-container');
+  var unow_cards = document.getElementsByClassName('unowned-card-container');
+  for(i = 0; i < ow_cards.length; i++) {
+    ow_cards[i].style.display ='block';
+  }
+  for(i = 0; i < unow_cards.length; i++) {
+    unow_cards[i].style.display ='none';
+  }
+}
+function unowned(){
+  var ow_cards = document.getElementsByClassName('owned-card-container');
+  var unow_cards = document.getElementsByClassName('unowned-card-container');
+  for(i = 0; i < ow_cards.length; i++) {
+    ow_cards[i].style.display ='none';
+  }
+  for(i = 0; i < unow_cards.length; i++) {
+    unow_cards[i].style.display ='block';
+  }
+}
+function flip_card(card_id){
+  var img = document.getElementById(card_id);
+  var img2 = document.getElementById(card_id + '-face');
+  if (img.style.display == 'block'){
+    img.style.display ='none';
+    img2.style.display ='block';
+  } else {
+    img.style.display ='block';
+    img2.style.display ='none';
+  }
+}
+</script>
+<h1 style="width: fit-content; margin: auto; text-transform:uppercase;">{{cards[0].set_name}}</h1>
+
+<div class="inv_top_buttons">
+    <button class="button" onclick="window.location.href='{{ url_for('collection') }}'">Back to collection</button>
+</div>
+
+<div class="radio-buttons">
+    <input class="btn-check" id="radio-all" type="radio" name="show" value="all" onclick="all_cards();" checked="checked"/>
+    <label class="btn" for="radio-all">All</label>
+
+    <input class="btn-check" id="radio-owned" type="radio" name="show" value="owned" onclick="owned();"/>
+    <label class="btn" for="radio-owned">Owned</label>
+
+    <input class="btn-check" id="radio-unowned" type="radio" name="show" value="unowned" onclick="unowned();"/>
+    <label class="btn" for="radio-unowned">Unowned</label>
+</div>
+
+<form class="row gy-3 gx-4 align-items-center" action="{{ url_for('collection_cards', setname=setname) }}" method="post" style="width: fit-content; margin: auto; padding-top: 0px;">
+    <div class="col-auto">
+        <label class="form-label" for="name_search">Card Name: </label>
+        <input class="form-control" id="name_search" name="name_search" placeholder="Enter card name" type="text" spellcheck="false" autocapitalize="off" value="">
+    </div>
+
+    <div class="col-auto">
+        <label class="form-label" for="artist_search">Artist Name: </label>
+        <input class="form-control" id="artist_search" name="artist_search" placeholder="Enter artist name" type="text" spellcheck="false" autocapitalize="off" value="">
+    </div>
+
+    <div class="col-auto">
+        <label class="form-label" for="rarity_dropdown">Rarity:</label>
+        <select class="form-select" id="rarity_dropdown" name="rarity_dropdown">
+            <option disabled selected value>Select rarity</option>
+            <option value="common">Common</option>
+            <option value="uncommon">Uncommon</option>
+            <option value="rare">Rare</option>
+            <option value="mythic">Mythic</option>
+        </select>
+    </div>
+
+    <div class="col-auto">
+        <label class="form-label" for="sort_dropdown">Sort by:</label>
+        <select class="form-select" id="sort_dropdown" name="sort_dropdown">
+            <option disabled selected value>Collector number (default)</option>
+            <option value="Cards.name">Name</option>
+            <option value="Cards.name desc">Name (desc)</option>
+            <option value="Cards.price">Price</option>
+            <option value="Cards.price desc">Price (desc)</option>
+        </select>
+    </div>
+
+    <div class="col-auto" style="margin-top: 50px;">
+        <button class="button" type="submit" name="Filter">Filter</button>
+        <button class="button" type="submit" name="Reset">Reset</button>
+    </div>
+</form>
+
+<div class="collection_grid">
+    {% for card in cards %}
+        {% if card.id in owned_cards: %}
+        <div id="owned-cards" class="owned-card-container" style="display: block;">
+            <div class="image-container" style="width: 100%;">
+                <img id="{{card.id}}" alt={{card.name}} title={{card.name}} src={{card.image_uris}} class="card_img" style="display: block;">
+                {% if card.card_faces != 'nan' %}
+                <img id="{{card.id}}-face" alt={{card.name}} title={{card.name}} src={{card.card_faces}} class="card_img" style="display: none;">
+                <button class="button flip-button" onclick="flip_card('{{card.id}}')">Flip</button>
+                {% endif %}
+            </div>
+            <div title={{card.name}} class="">NAME: {{card.name}}</div>
+            <div title={{card.set_name}} class="">SET: {{card.set_name}}</div>
+            <div class="">Price: {{card.price}}€</div>
+        </div>
+        {% else: %}
+        <div id="unowned-cards" class="unowned-card-container" style="display: block;">
+            <div class="image-container" style="width: 100%;">
+                <img alt={{card.name}} title={{card.name}} src=https://static.wikia.nocookie.net/mtgsalvation_gamepedia/images/f/f8/Magic_card_back.jpg class="card_img" style="display: block;">
+            </div>
+            <div title={{card.name}} class="">NAME: {{card.name}}</div>
+            <div title={{card.set_name}} class="">SET: {{card.set_name}}</div>
+            <div class="">Price: {{card.price}}€</div>
+        </div>
+        {% endif %}
+    {% endfor %}
+</div>
+
+{% endblock %}
+
