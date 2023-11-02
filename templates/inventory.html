@@ -3,7 +3,11 @@
 
 {% block content %}
 <script>
-    function sell_pack(price, pack_code) {
+    var sleep = function(ms){
+        return new Promise(resolve => setTimeout(resolve, ms));
+    };
+
+    async function sell_pack(price, pack_code, id) {
       localStorage.money = Number(localStorage.money)+price;
       document.getElementById('money').innerHTML = format_money()
 
@@ -11,11 +15,13 @@
       const index = inventory_packs.indexOf(pack_code);
       inventory_packs.splice(index, 1);
       localStorage.setItem("inventory_packs", JSON.stringify(inventory_packs));
+
       pass_data();
+      await sleep(100);
       location.reload();
     }
 
-    function sell_card(price, card_id) {
+    function sell_card(price, card_id, id) {
       localStorage.money = Number(localStorage.money)+price;
       document.getElementById('money').innerHTML = format_money()
 
@@ -24,10 +30,12 @@
       inventory_cards.splice(index, 1);
       localStorage.setItem("inventory_cards", JSON.stringify(inventory_cards));
       pass_data();
-      location.reload();
+
+      var item_id = document.getElementById(id);
+      item_id.style.display ='none';
     }
 
-    function addToCollection(card_id){
+    function addToCollection(card_id, id){
       var inventory_cards = JSON.parse(localStorage.getItem("inventory_cards"));
       const index = inventory_cards.indexOf(card_id);
       inventory_cards.splice(index, 1);
@@ -36,12 +44,14 @@
       var owned_cards = JSON.parse(localStorage.getItem("owned_cards"));
       owned_cards.push(card_id);
       localStorage.setItem("owned_cards", JSON.stringify(owned_cards));
-
       pass_data();
-      location.reload();
+
+      var item_id = document.getElementById(id);
+      item_id.style.display ='none';
+
     }
 
-    function add_all_cards(){
+    async function add_all_cards(){
         var inventory_cards = JSON.parse(localStorage.getItem("inventory_cards"));
         var owned_cards = JSON.parse(localStorage.getItem("owned_cards"));
         var loop_cards = [];
@@ -57,10 +67,11 @@
         localStorage.setItem("owned_cards", JSON.stringify(owned_cards));
 
         pass_data();
+        await sleep(100);
         location.reload();
     }
 
-    function sell_all_cards(){
+    async function sell_all_cards(){
         total_money = 0;
         {% for card in cards %}
             card_price = {{card.price}}
@@ -73,12 +84,13 @@
       var inventory_cards = [];
       localStorage.setItem("inventory_cards", JSON.stringify(inventory_cards));
       pass_data();
+      await sleep(100);
       location.reload();
     }
 
     function all_items(){
       var cards = document.getElementsByClassName('show_cards');
-      var packs = document.getElementsByClassName('show_packs');
+      var packs = document.getElementsByClassName('shop_set_div');
       for(i = 0; i < cards.length; i++) {
         cards[i].style.display ='block';
       }
@@ -88,7 +100,7 @@
     }
     function cards(){
       var cards = document.getElementsByClassName('show_cards');
-      var packs = document.getElementsByClassName('show_packs');
+      var packs = document.getElementsByClassName('shop_set_div');
       for(i = 0; i < cards.length; i++) {
         cards[i].style.display ='block';
       }
@@ -98,7 +110,7 @@
     }
     function packs(){
       var cards = document.getElementsByClassName('show_cards');
-      var packs = document.getElementsByClassName('show_packs');
+      var packs = document.getElementsByClassName('shop_set_div');
       for(i = 0; i < cards.length; i++) {
         cards[i].style.display ='none';
       }
@@ -126,7 +138,7 @@
 </div>
 
 <div>
-<form class="row gy-3 gx-4 align-items-center" action="{{ url_for('inventory') }}" method="post" style="width: fit-content; margin: auto; padding-top: 0px; padding-bottom: 0px;">
+<form class="row gy-3 gx-4 align-items-center" action="{{ url_for('inventory') }}" method="get" style="width: fit-content; margin: auto; padding-top: 0px; padding-bottom: 0px;">
     <div class="col-auto">
         <label class="form-label" for="name_search">Card Name: </label>
         <input class="form-control" id="name_search" name="name_search" placeholder="Enter card name" type="text" spellcheck="false" autocapitalize="off" value="">
@@ -187,36 +199,42 @@
 </div>
 
 <div class="collection_grid">
+    {% for set in sets %}
+        {% if set.code not in check: %}
+            <div id="pack{{ loop.index0 }}" class="shop_set_div" style="display: block;">
+                {% if set.released_at < '2018-04-27' %}
+                <img class="blank_booster" src="{{ url_for('static', filename='img/logo_antiguo.png') }}">
+                {% else %}
+                <img class="blank_booster" src="{{ url_for('static', filename='img/logo_actual.png') }}">
+                {% endif %}
+                <div class="pack_info">
+                    <img class="pack_img" alt={{set.name}} title={{set.name}} src={{set.icon_svg_uri}} style="display: block;">
+                    <div title={{set.name}} style="color:black;">{{set.name}}</div>
+                    <div title={{set.released_at}} style="color:black;">{{set.released_at}}</div>
+                    <div title=quantity style="color:black;" id="pack_count">x {{ pack_count(set.code) }}</div>
+                </div>
+                <button class="button" onclick="sell_pack({{set.price}}, '{{set.code}}', 'pack{{ loop.index0 }}')">Sell pack {{set.price}}€</button>
+                <button class="button" onclick="window.location.href='{{ url_for('open_pack' , pack_code=set.code) }}';">Open pack</button>
+            </div>
+        {% endif %}
+        <script>{{check.append(set.code)}}</script>
+    {% endfor %}
+</div>
+
+<div class="collection_grid cards">
     {% for card in cards %}
-    <div class="show_cards" style="display: block;">
+    <div id="{{ loop.index0 }}" class="show_cards" style="display: block;">
         <div class="">
                 <div class="" style="width: 100%;">
                         <img alt={{card.name}} title={{card.name}} src={{card.image_uris}} class="card_img" style="display: block;">
                 </div>
             <div title={{card.name}} class="">NAME: {{card.name}}</div>
             <div title={{card.set_name}} class="">SET: {{card.set_name}}</div>
-            <button class="button" onclick="sell_card({{card.price}}, '{{card.id}}')">Sell card {{card.price}}€</button>
+            <button class="button" onclick="sell_card({{card.price}}, '{{card.id}}', {{ loop.index0 }})">Sell card {{card.price}}€</button>
             {% if card.id not in owned_cards: %}
-            <button class="button" onclick="addToCollection('{{card.id}}')">Add to collection</button>
+            <button class="button" onclick="addToCollection('{{card.id}}', {{ loop.index0 }})">Add to collection</button>
             {% endif %}
         </div>
-    </div>
-    {% endfor %}
-
-    {% for set in sets %}
-    <div class="shop_set_div">
-        {% if set.released_at < '2018-04-27' %}
-        <img class="blank_booster" src="{{ url_for('static', filename='img/logo_antiguo.png') }}">
-        {% else %}
-        <img class="blank_booster" src="{{ url_for('static', filename='img/logo_actual.png') }}">
-        {% endif %}
-        <div class="pack_info">
-            <img class="pack_img" alt={{set.name}} title={{set.name}} src={{set.icon_svg_uri}} style="display: block;">
-            <div title={{set.name}} style="color:black;">{{set.name}}</div>
-            <div title={{set.released_at}} style="color:black;">{{set.released_at}}</div>
-        </div>
-        <button class="button" onclick="sell_pack({{set.price}}, '{{set.code}}')">Sell pack {{set.price}}€</button>
-        <button class="button" onclick="window.location.href='{{ url_for('open_pack' , pack_code=set.code) }}';">Open pack</button>
     </div>
     {% endfor %}
 </div>

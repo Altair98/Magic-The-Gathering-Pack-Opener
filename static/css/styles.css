@@ -149,8 +149,8 @@ body {
 
 .shop_set_div {
     position: relative;
-    width: 100%;
-    height: 100%;
+    width: 114%;
+    height: 116%;
     margin: 0px 50px;
     padding-right: 10px;
     padding-left: 10px;
@@ -169,7 +169,7 @@ body {
 .pack_info {
     position: absolute;
     width: 45%;
-    top: 35%;
+    top: 28%;
     left: 28%;
 }
 
@@ -188,6 +188,8 @@ body {
     margin: 0px auto;
     align-items: baseline;
     justify-items: center;
+    padding: 1%;
+
 }
 }
 
@@ -227,6 +229,10 @@ body {
     margin: 0px auto;
     align-items: baseline;
     justify-items: center;
+}
+.collection_grid.cards {
+    padding-left: 6%;
+
 }
 }
 
@@ -276,4 +282,28 @@ body {
     padding-top: 20px;
     width: fit-content;
     margin: auto;
+}
+
+.pagination {
+    margin-top: 40px;
+    width: fit-content;
+    height: fit-content;
+    padding-left: 40%;
+    padding-right: 40%;
+    padding-top: 3%;
+}
+
+.pagination span {
+    font-size: 2em;
+    margin-right: 20px;
+}
+
+.page-number {
+    color: #F4faff;
+    padding: 5px;
+    text-decoration: none;
+}
+
+.current-page-number {
+    color: #666
 }

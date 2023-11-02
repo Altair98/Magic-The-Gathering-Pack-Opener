@@ -48,10 +48,14 @@
       }
       {% endfor %}
     }
+
+    function invRedirect() {
+        location.assign("{{ url_for('inventory') }}");
+    }
 </script>
 
 <div class="inv_top_buttons">
-    <button class="button" onclick="window.location.href='{{ url_for('inventory') }}'">Back to inventory</button>
+    <button class="button" onclick="invRedirect()">Back to inventory</button>
     <button class="button" onclick="window.location.reload();">Open another (F5)</button>
     <button class="button" onclick="flip_all();">Flip all</button>
     <p>No pack available = back to inventory</p>

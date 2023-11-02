@@ -1,7 +1,6 @@
 import sqlalchemy
 import os
-from sqlalchemy import desc
-from flask import Flask, render_template, redirect, url_for, request, jsonify
+from flask import Flask, render_template, redirect, url_for, request
 from flask_bootstrap import Bootstrap5
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.sql.expression import func
@@ -106,35 +105,35 @@ def pack_shop():
 @app.route("/inventory", methods=['POST', 'GET'])
 def inventory():
     global inventory_packs, inventory_cards, owned_cards
-
+    page = request.args.get('page', 1, type=int)
     cards = [Cards.query.filter_by(id=id).one() for id in inventory_cards]
     sets = [Sets.query.filter_by(code=code).one() for code in inventory_packs]
 
+    name_search = request.args.get("name_search")
+    if name_search is None:
+        name_search = ''
+    artist_search = request.args.get("artist_search")
+    if artist_search is None:
+        artist_search = ''
+    rarity = request.args.get("rarity_dropdown")
+    if rarity is None:
+        cards = []
+        for i in inventory_cards:
+            card = Cards.query.filter(Cards.id == i).filter(Cards.name.contains(name_search)) \
+                .filter(Cards.artist.contains(artist_search)).first()
+            if card is not None:
+                cards.append(card)
+
+    elif rarity is not None:
+        cards = []
+        for i in inventory_cards:
+            card = Cards.query.filter(Cards.id == i).filter(Cards.name.contains(name_search)) \
+                .filter(Cards.artist.contains(artist_search)) \
+                .filter(Cards.rarity == rarity).first()
+            if card is not None:
+                cards.append(card)
+
     if request.method == 'POST':
-        if 'Filter_cards' in request.form:
-            name_search = request.form.get("name_search")
-            artist_search = request.form.get("artist_search")
-            rarity = request.form.get("rarity_dropdown")
-            if rarity is None:
-                cards = []
-                for i in inventory_cards:
-                    card = Cards.query.filter(Cards.id == i).filter(Cards.name.contains(name_search))\
-                                                .filter(Cards.artist.contains(artist_search)).first()
-                    if card is not None:
-                        cards.append(card)
-
-            elif rarity is not None:
-                cards = []
-                for i in inventory_cards:
-                    card = Cards.query.filter(Cards.id == i).filter(Cards.name.contains(name_search))\
-                                                .filter(Cards.artist.contains(artist_search))\
-                                                .filter(Cards.rarity == rarity).first()
-                    if card is not None:
-                        cards.append(card)
-
-        if 'Reset_cards' in request.form:
-            cards = [Cards.query.filter_by(id=id).one() for id in inventory_cards]
-
         if 'Filter_packs' in request.form:
             set_name_search = request.form.get("name_search")
             set_type = request.form.get("settype_dropdown")
@@ -148,7 +147,7 @@ def inventory():
             elif set_type is not None:
                 sets = []
                 for i in inventory_packs:
-                    pack = Sets.query.filter(Sets.code == i).filter(Sets.name.contains(set_name_search))\
+                    pack = Sets.query.filter(Sets.code == i).filter(Sets.name.contains(set_name_search)) \
                         .filter(Sets.set_type == set_type).first()
                     if pack is not None:
                         sets.append(pack)
@@ -156,7 +155,16 @@ def inventory():
         if 'Reset_packs' in request.form:
             sets = [Sets.query.filter_by(code=code).one() for code in inventory_packs]
 
-    return render_template("inventory.html", cards=cards, sets=sets, owned_cards=owned_cards)
+    '''function to count packs'''
+
+    def pack_count(set_code):
+        count = inventory_packs.count(set_code)
+        return count
+
+    check = []
+
+    return render_template("inventory.html", cards=cards, sets=sets, owned_cards=owned_cards, pack_count=pack_count,
+                           check=check)
 
 
 @app.route("/open/<pack_code>")
@@ -228,35 +236,35 @@ def open_pack(pack_code):
 @app.route("/collection", methods=['POST', 'GET'])
 def collection():
     global owned_cards
+    page = request.args.get('page', 1, type=int)
     cards = Cards.query.all()
-    sets = Sets.query.order_by(Sets.name).all()
-    if request.method == 'POST':
-        if 'Filter' in request.form:
-            name_search = request.form.get("name_search")
-            set_type = request.form.get("settype_dropdown")
-            sort_by = request.form.get("sort_dropdown")
-            if set_type is None and sort_by is None:
-                query_filter = Sets.query.filter(Sets.name.contains(name_search)).order_by(Sets.name)
-                sets = query_filter
+    sets = Sets.query.order_by(Sets.name).paginate(page=page, per_page=5)
 
-            elif sort_by is None and set_type is not None:
-                query_filter = Sets.query.filter(Sets.name.contains(name_search)) \
-                    .filter(Sets.set_type == set_type).order_by(Sets.name)
-                sets = query_filter
+    name_search = request.args.get("name_search")
+    set_type = request.args.get("settype")
+    sort_by = request.args.get("sort_by")
+    if name_search is None:
+        name_search = ''
 
-            elif set_type is None and sort_by is not None:
-                query_filter = Sets.query.filter(Sets.name.contains(name_search)).order_by(text(sort_by))
-                sets = query_filter
+    if set_type is None and sort_by is None:
+        sets = Sets.query.filter(Sets.name.contains(name_search)).order_by(Sets.name).paginate(page=page, per_page=5)
 
-            else:
-                query_filter = Sets.query.filter(Sets.name.contains(name_search)) \
-                    .filter(Sets.set_type == set_type).order_by(text(sort_by))
-                sets = query_filter
+    elif sort_by is None and set_type is not None:
+        sets = Sets.query.filter(Sets.name.contains(name_search)) \
+            .filter(Sets.set_type == set_type).order_by(Sets.name) \
+            .paginate(page=page, per_page=5)
 
-        if 'Reset' in request.form:
-            sets = Sets.query.order_by(Sets.name).all()
+    elif set_type is None and sort_by is not None:
+        sets = Sets.query.filter(Sets.name.contains(name_search)).order_by(text(sort_by)) \
+            .paginate(page=page, per_page=5)
+
+    else:
+        sets = Sets.query.filter(Sets.name.contains(name_search)) \
+            .filter(Sets.set_type == set_type).order_by(text(sort_by)) \
+            .paginate(page=page, per_page=5)
 
     '''function to count owned cards by set'''
+
     def set_owned(set_code):
         cards = Cards.query.all()
         set_ids = []
@@ -315,6 +323,8 @@ def collection_cards(setname):
 
     return render_template("collection_cards.html", cards=cards, setname=setname, owned_cards=owned_cards)
 
+
+# TODO inv load slow as fuck (paginate cards)
 
 '''
     Sets that may be updated: 

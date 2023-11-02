@@ -48,7 +48,7 @@ function flip_card(card_id){
 <h1 style="width: fit-content; margin: auto; text-transform:uppercase;">{{cards[0].set_name}}</h1>
 
 <div class="inv_top_buttons">
-    <button class="button" onclick="window.location.href='{{ url_for('collection') }}'">Back to collection</button>
+    <button class="button" onclick="window.location.href='{{ url_for('collection', page=1) }}'">Back to collection</button>
 </div>
 
 <div class="radio-buttons">

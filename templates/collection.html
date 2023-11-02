@@ -8,15 +8,15 @@
 
 <h1 style="width: fit-content; margin: auto;">COLLECTION</h1>
 
-<form class="row gy-3 gx-4 align-items-center" action="{{ url_for('collection') }}" method="post" style="width: fit-content; margin: auto; padding-top: 0px;">
+<form class="row gy-3 gx-4 align-items-center" action="{{ url_for('collection') }}" method="get" style="width: fit-content; margin: auto; padding-top: 0px;">
     <div class="col-auto">
         <label class="form-label" for="name_search">Set Name: </label>
         <input class="form-control" id="name_search" name="name_search" placeholder="Enter set name" type="text" spellcheck="false" autocapitalize="off" value="">
     </div>
 
     <div class="col-auto">
-        <label class="form-label" for="settype_dropdown">Set type:</label>
-        <select class="form-select" id="settype_dropdown" name="settype_dropdown">
+        <label class="form-label" for="settype">Set type:</label>
+        <select class="form-select" id="settype" name="settype">
             <option disabled selected value>Select set type</option>
             <option value="draft_innovation">Draft_Innovation</option>
             <option value="promo">Promo</option>
@@ -32,8 +32,8 @@
     </div>
 
     <div class="col-auto">
-        <label class="form-label" for="sort_dropdown">Sort by:</label>
-        <select class="form-select" id="sort_dropdown" name="sort_dropdown">
+        <label class="form-label" for="sort_by">Sort by:</label>
+        <select class="form-select" id="sort_by" name="sort_by">
             <option disabled selected value>Name (default)</option>
             <option value="Sets.name desc">Name (desc)</option>
             <option value="Sets.released_at">Release date</option>
@@ -46,8 +46,8 @@
     </div>
 
     <div class="col-auto" style="margin-top: 50px;">
-        <button class="button" type="submit" name="Filter">Filter</button>
-        <button class="button" type="submit" name="Reset">Reset</button>
+        <button class="button" type="submit">Filter</button>
+        <a href="{{ url_for('collection', page=1) }}" class="button" style="text-decoration:auto;">Reset</a>
     </div>
 </form>
 
@@ -67,6 +67,47 @@
         </div>
     </div>
     {% endfor %}
+</div>
+
+<div class="pagination">
+    {% if sets.has_prev %}
+        <span>
+            <a class='page-number' href="{{ url_for('collection', page=sets.prev_num, name_search=request.args.get('name_search'),
+                        settype=request.args.get('settype'), sort_by=request.args.get('sort_by')) }}">
+                {{ 'Prev' }}
+            </a>
+        </span>
+    {% endif %}
+
+    {% for number in sets.iter_pages() %}
+        {% if sets.page != number %}
+            <span>
+                {% if number == None %}
+                    <a class='page-number'>
+                        {{ '...' }}
+                    </a>
+                {% else %}
+                    <a class='page-number'
+                        href="{{ url_for('collection', page=number, name_search=request.args.get('name_search'),
+                        settype=request.args.get('settype'), sort_by=request.args.get('sort_by')) }}">
+                        {{ number }}
+                    </a>
+                {% endif %}
+            </span>
+        {% else %}
+            <span class='current-page-number'>{{ number }}</span>
+        {% endif %}
+    {% endfor %}
+
+    {% if sets.has_next %}
+        <span>
+            <a class='page-number'
+                href="{{ url_for('collection', page=sets.next_num, name_search=request.args.get('name_search'),
+                        settype=request.args.get('settype'), sort_by=request.args.get('sort_by')) }}">
+                {{ 'Next' }}
+            </a>
+        </span>
+    {% endif %}
 </div>
 
 {% endblock %}
