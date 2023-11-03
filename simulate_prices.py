@@ -2,7 +2,7 @@ import sqlalchemy
 import threading
 from sqlalchemy.sql.expression import func
 import random
-from main import Cards, app
+from application import Cards, application
 
 '''Simulate average prices for packs'''
 
@@ -72,7 +72,7 @@ def sum_prices():
 def simulate(n):
     trials = []
     for i in range(n):
-        with app.app_context():
+        with application.app_context():
             trials.append(sum_prices())
     print(f'simulate: {sum(trials) / n}')
 

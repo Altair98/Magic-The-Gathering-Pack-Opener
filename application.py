@@ -7,11 +7,11 @@ from sqlalchemy.sql.expression import func
 from sqlalchemy.sql import text
 import random
 
-app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///cards.db'
-app.config['SECRET_KEY'] = os.environ.get("SECRET_KEY")
-Bootstrap5(app)
-db = SQLAlchemy(app)
+application = Flask(__name__)
+application.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///cards.db'
+application.config['SECRET_KEY'] = os.environ.get("SECRET_KEY")
+Bootstrap5(application)
+db = SQLAlchemy(application)
 
 '''TABLE MODELS'''
 
@@ -50,12 +50,12 @@ class Sets(db.Model):
     price = db.Column(db.Integer, nullable=False)
 
 
-@app.route("/")
+@application.route("/")
 def home():
     return render_template("home.html")
 
 
-@app.route("/data", methods=['GET', 'POST'])
+@application.route("/data", methods=['GET', 'POST'])
 def data():
     global owned_cards, inventory_packs, inventory_cards
     data_dic = request.get_json()
@@ -65,12 +65,12 @@ def data():
     return data_dic
 
 
-@app.route("/currency")
+@application.route("/currency")
 def currency():
     return render_template("money.html")
 
 
-@app.route("/pack_shop", methods=['POST', 'GET'])
+@application.route("/pack_shop", methods=['POST', 'GET'])
 def pack_shop():
     sets = Sets.query.order_by(Sets.name).all()
     if request.method == 'POST':
@@ -102,7 +102,7 @@ def pack_shop():
     return render_template("pack_shop.html", sets=sets)
 
 
-@app.route("/inventory", methods=['POST', 'GET'])
+@application.route("/inventory", methods=['POST', 'GET'])
 def inventory():
     global inventory_packs, inventory_cards, owned_cards
     page = request.args.get('page', 1, type=int)
@@ -167,7 +167,7 @@ def inventory():
                            check=check)
 
 
-@app.route("/open/<pack_code>")
+@application.route("/open/<pack_code>")
 def open_pack(pack_code):
     global inventory_packs
 
@@ -233,7 +233,7 @@ def open_pack(pack_code):
         return redirect(url_for('inventory'))
 
 
-@app.route("/collection", methods=['POST', 'GET'])
+@application.route("/collection", methods=['POST', 'GET'])
 def collection():
     global owned_cards
     page = request.args.get('page', 1, type=int)
@@ -282,7 +282,7 @@ def collection():
     return render_template("collection.html", sets=sets, owned_cards=owned_cards, cards=cards, set_owned=set_owned)
 
 
-@app.route("/collection/<setname>", methods=['POST', 'GET'])
+@application.route("/collection/<setname>", methods=['POST', 'GET'])
 def collection_cards(setname):
     global owned_cards
     cards = Cards.query.filter(Cards.set_name == setname)
@@ -324,7 +324,8 @@ def collection_cards(setname):
     return render_template("collection_cards.html", cards=cards, setname=setname, owned_cards=owned_cards)
 
 
-# TODO inv load slow as fuck (paginate cards)
+# TODO inv load slow as fuck (Try different hosting)(check response times for specific stuff)
+# TODO add card to collection duplicate
 
 '''
     Sets that may be updated: 
@@ -332,4 +333,4 @@ def collection_cards(setname):
 '''
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    application.run(debug=True, port=5000)
